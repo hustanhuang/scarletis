@@ -1,5 +1,5 @@
 CC= gcc-5
-CFLAGS= -Wall -Wextra -Wformat -std=c99 -g
+CFLAGS= -std=c99
 
 all: srv cli
 

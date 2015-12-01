@@ -1,5 +1,5 @@
-#ifndef SLIST_H
-#define SLIST_H
+#ifndef LIST_H
+#define LIST_H
 
 /* Basic type for the double-link list.  */
 typedef struct list_head {

@@ -1,4 +1,4 @@
-#include "slist.h"
+#include "list.h"
 
 void list_insert (list_t *newp, list_t *elem) {
   newp->prev = elem->prev;

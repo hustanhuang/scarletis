@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../src/slist.h"
+#include "../src/list.h"
 
 typedef struct {
     int num;
@@ -25,6 +25,7 @@ void list_free(list_t *head) {
 }
 
 int main() {
+    printf("list test\n");
 
     /* init */
     LIST_HEAD(head);

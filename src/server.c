@@ -11,7 +11,8 @@
 
 const char *welcome =
 "Scarletis\n"
-"Port: %d\n";
+"Port: %d\n"
+"\n";
 
 time_t g_ticks;
 

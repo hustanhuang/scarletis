@@ -5,6 +5,3 @@ all:
 
 list:
 	$(CC) $(CFLAGS) -o test listtest.c ../src/list.c
-
-str:
-	$(CC) $(CFLAGS) -o test strtest.c ../src/sstring.c

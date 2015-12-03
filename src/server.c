@@ -27,10 +27,34 @@ void s_errlog(const char *s) {
     exit(EXIT_FAILURE);
 }
 
-int session(int conn_fd, struct sockaddr_in *cli_addr);
+int session(int conn_fd, struct sockaddr_in *cli_addr) {
+    char buff[1025];
+    size_t length = 0;
+    uint32_t addr = ntohs(cli_addr->sin_addr.s_addr);
+    in_port_t port = ntohs(cli_addr->sin_port);
 
-int main()
-{
+    for ( ; ; ) {
+        bzero(buff, sizeof(buff));
+        snprintf(buff, sizeof(buff), ">>> ");
+        if (send(conn_fd, buff, strlen(buff), 0) < 0)
+            s_errlog("print prompt");
+
+        bzero(buff, sizeof(buff));
+        if ( (length = recv(conn_fd, buff, sizeof(buff), 0)) < 0)
+            s_errlog("recv data");
+
+        g_ticks = time(NULL);
+        fprintf(stdout, "%.24s message from %d:%d\n\t%s", ctime(&g_ticks), addr, port, buff);
+
+        if (send(conn_fd, buff, strlen(buff), 0) < 0)
+            s_errlog("echo");
+    }
+
+    return 0;
+}
+
+int main() {
+
     fprintf(stdout, welcome, SCAR_PORT);
 
     int listen_fd;
@@ -68,30 +92,4 @@ int main()
     }
 
     exit(EXIT_SUCCESS);
-}
-
-int session(int conn_fd, struct sockaddr_in *cli_addr) {
-    char buff[1025];
-    size_t length = 0;
-    uint32_t addr = ntohs(cli_addr->sin_addr.s_addr);
-    in_port_t port = ntohs(cli_addr->sin_port);
-
-    for ( ; ; ) {
-        bzero(buff, sizeof(buff));
-        snprintf(buff, sizeof(buff), ">>> ");
-        if (send(conn_fd, buff, strlen(buff), 0) < 0)
-            s_errlog("print prompt");
-
-        bzero(buff, sizeof(buff));
-        if ( (length = recv(conn_fd, buff, sizeof(buff), 0)) < 0)
-            s_errlog("recv data");
-
-        g_ticks = time(NULL);
-        fprintf(stdout, "%.24s message from %d:%d\n\t%s", ctime(&g_ticks), addr, port, buff);
-
-        if (send(conn_fd, buff, strlen(buff), 0) < 0)
-            s_errlog("echo");
-    }
-
-    return 0;
 }

@@ -13,11 +13,10 @@ int Register(int kq, int fd) {
     struct kevent changes[1];
 	EV_SET(&changes[0], fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
 
-	int ret = kevent(kq, changes, 1, NULL, 0, NULL);
-	if (ret == -1)
-		return 0;
+	if (kevent(kq, changes, 1, NULL, 0, NULL) < 0)
+        s_err("kevent");
 
-	return 1;
+	return 0;
 }
 
 void Accept(int kq, int connSize, int listen_fd) {
@@ -27,7 +26,7 @@ void Accept(int kq, int connSize, int listen_fd) {
 		int client;
         if ( (client = accept(listen_fd, (struct sockaddr *)&cli_addr, &length)) < 0)
             s_err("accept");
-		if (Register(kq, client) == 0)
+		if (Register(kq, client))
             s_err("register");
         s_log("Connection Established");
         fprintf(stdout, "Client address: ");
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
         s_err("listening");
 
     int kq = kqueue();
-    if (Register(kq, listen_fd) == 0)
+    if (Register(kq, listen_fd))
         s_err("register");
 
     fprintf(stdout, welcome, SCAR_PORT);

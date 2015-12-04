@@ -66,8 +66,10 @@ int s_cmd(int conn_fd, char buff[BUFF_LEN]) {
     memmove(buff, buff + i, BUFF_LEN - i);
 
     while (p->name) {
-        if (strcmp(p->name, name) == 0)
-            return p->oper(conn_fd, buff);
+        if (strcmp(p->name, name) == 0) {
+            int ret =  p->oper(conn_fd, buff);
+            return ret;
+        }
         ++p;
     }
 

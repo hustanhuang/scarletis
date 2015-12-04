@@ -21,13 +21,24 @@ int Register(int kq, int fd) {
 }
 
 void Accept(int kq, int connSize, int listen_fd) {
+    struct sockaddr_in cli_addr;
+    socklen_t length = sizeof(cli_addr);
 	for (int i = 0; i < connSize; i++) {
 		int client;
-        if ( (client = accept(listen_fd, NULL, NULL)) < 0)
+        if ( (client = accept(listen_fd, (struct sockaddr *)&cli_addr, &length)) < 0)
             s_err("accept");
 		if (Register(kq, client) == 0)
             s_err("register");
         s_log("Connection Established");
+        fprintf(stdout, "Client address: ");
+        long ip_addr = cli_addr.sin_addr.s_addr;
+        for (int i = 0; i != 4; ++i) {
+            printf("%d", ip_addr % 256);
+            ip_addr >>= 8;
+            if (i != 3)
+                putchar('.');
+        }
+        fprintf(stdout, ":%d\n", ntohs(cli_addr.sin_port));
 	}
 }
 

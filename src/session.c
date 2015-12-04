@@ -20,16 +20,15 @@ int Session(int conn_fd, int bytes) {
     if (buff[length - 1] == '\n') buff[--length] = '\0';
     if (buff[length - 1] == '\r') buff[--length] = '\0';
 
+    s_log("MSG");
+    s_prt(buff, length);
+    putchar('\n');
+
     if (strcmp(buff, "quit") == 0) {
-        s_log("END");
         close(conn_fd);
         s_log("Connection Terminated");
-    } else {
-        s_log("MSG");
-        s_prt(buff, length);
-        putchar('\n');
+    } else
         s_cmd(conn_fd, buff);
-    }
 
     return 0;
 }

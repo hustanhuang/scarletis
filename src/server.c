@@ -2,15 +2,38 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/event.h>
 #include <arpa/inet.h>
 
 #include "def.h"
 #include "log.h"
 #include "session.h"
 
-int main() {
+int Register(int kq, int fd) {
+    struct kevent changes[1];
+	EV_SET(&changes[0], fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+
+	int ret = kevent(kq, changes, 1, NULL, 0, NULL);
+	if (ret == -1)
+		return 0;
+
+	return 1;
+}
+
+void Accept(int kq, int connSize, int listen_fd) {
+	for (int i = 0; i < connSize; i++) {
+		int client;
+        if ( (client = accept(listen_fd, NULL, NULL)) < 0)
+            s_err("accept");
+		if (Register(kq, client) == 0)
+            s_err("register");
+        s_log("Connection Established");
+	}
+}
+
+int main(int argc, char* argv[]) {
     int listen_fd;
-    if ( (listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ( (listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
         s_err("retrieve socket");
 
     struct sockaddr_in serv_addr;
@@ -24,25 +47,27 @@ int main() {
     if (listen(listen_fd, 16) < 0)
         s_err("listening");
 
+    int kq = kqueue();
+    if (Register(kq, listen_fd) == 0)
+        s_err("register");
+
     fprintf(stdout, welcome, SCAR_PORT);
 
-    int conn_fd;
-    struct sockaddr_in cli_addr;
-    socklen_t length = 0;
-    for (int i = 0; i != 2; ++i) {
-        s_log("Waiting for connections");
+    struct kevent events[MAX_EVENT_COUNT];
+    for ( ; ; ) {
+        int nevents = 0;
+        if ( (nevents = kevent(kq, NULL, 0, events, MAX_EVENT_COUNT, NULL)) < 0)
+            s_err("kevent");
 
-        length = sizeof(cli_addr);
-        if ( (conn_fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &length)) < 0)
-            s_err("accepting connections");
+        for (int i = 0; i != nevents; ++i) {
+            int cli_fd =    events[i].ident,
+                data =      events[i].data;
 
-        if (session(conn_fd) < 0)
-            s_err("client session");
-
-        if (close(conn_fd) < 0)
-            s_err("closing connection");
-
-        s_log("Session complete");
+            if (cli_fd == listen_fd)
+                Accept(kq, data, listen_fd);
+            else
+                Session(cli_fd, data);
+        }
     }
 
     exit(EXIT_SUCCESS);

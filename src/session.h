@@ -3,6 +3,6 @@
 
 #include <arpa/inet.h>
 
-int session(int conn_fd);
+int Session(int conn_fd, int bytes);
 
 #endif

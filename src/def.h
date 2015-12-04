@@ -4,7 +4,7 @@
 #include <time.h>
 
 #define SCAR_PORT   6379
-#define BUFF_LEN    1025
+#define BUFF_LEN    4096
 
 static char *welcome =
 "Scarletis\n"

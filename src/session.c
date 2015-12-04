@@ -8,7 +8,7 @@
 #include "log.h"
 #include "cmd.h"
 
-int session(int conn_fd, struct sockaddr_in *cli_addr) {
+int session(int conn_fd) {
     const char *prompt = ">>> ";
     const size_t prompt_len = 4;
 

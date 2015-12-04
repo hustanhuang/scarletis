@@ -29,14 +29,14 @@ int main() {
     int conn_fd;
     struct sockaddr_in cli_addr;
     socklen_t length = 0;
-    for (int i = 0; i != 1; ++i) {
+    for (int i = 0; i != 2; ++i) {
         s_log("Waiting for connections");
 
         length = sizeof(cli_addr);
         if ( (conn_fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &length)) < 0)
             s_err("accepting connections");
 
-        if (session(conn_fd, &cli_addr) < 0)
+        if (session(conn_fd) < 0)
             s_err("client session");
 
         if (close(conn_fd) < 0)

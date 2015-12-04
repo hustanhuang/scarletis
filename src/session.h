@@ -3,6 +3,6 @@
 
 #include <arpa/inet.h>
 
-int session(int conn_fd, struct sockaddr_in *cli_addr);
+int session(int conn_fd);
 
 #endif

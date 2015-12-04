@@ -34,4 +34,4 @@ sds:
 
 #cleanup
 clean:
-	rm obj/* src/*~ scar-srv
+	rm -R *~ src/*~ scar-srv *.dSYM

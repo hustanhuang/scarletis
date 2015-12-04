@@ -1,20 +1,34 @@
 CC= gcc-5
 CFLAGS= -std=c99
 
-all: srv cli
+all: server
 
-srv: srvobjs
-	$(CC) $(CFLAGS) -o scar-srv obj/server.o
+#server
+server: srv log session cmds
+	$(CC) $(CFLAGS) -o scar-srv $(SRVOBJS)
 
-srvobjs:
+SRVOBJS= obj/server.o obj/log.o obj/session.o obj/cmds.o
+
+srv:
 	$(CC) $(CFLAGS) -o obj/server.o -c src/server.c
 
-cli: cliobjs
-	$(CC) $(CFLAGS) -o scar-cli obj/client.o
+session: log cmds
+	$(CC) $(CFLAGS) -o obj/session.o -c src/session.c
 
-cliobjs:
-	$(CC) $(CFLAGS) -o obj/client.o -c src/client.c
+cmds:
+	$(CC) $(CFLAGS) -o obj/cmds.o -c src/cmds.c
 
+#utils
+log:
+	$(CC) $(CFLAGS) -o obj/log.o -c src/log.c
+
+#data structures
+list:
+	$(CC) $(CFLAGS) -o obj/list.o -c src/list.c
+
+sds:
+	$(CC) $(CFLAGS) -o obj/sds.o -c src/sds.c
+
+#cleanup
 clean:
-	rm obj/* scar-srv scar-cli
-	rm -R *.dSYM
+	rm obj/* src/*~ scar-srv

@@ -9,8 +9,6 @@
 #include "session.h"
 
 int main() {
-    fprintf(stdout, welcome, SCAR_PORT);
-
     int listen_fd;
     if ( (listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         s_err("retrieve socket");
@@ -25,6 +23,8 @@ int main() {
 
     if (listen(listen_fd, 16) < 0)
         s_err("listening");
+
+    fprintf(stdout, welcome, SCAR_PORT);
 
     int conn_fd;
     struct sockaddr_in cli_addr;

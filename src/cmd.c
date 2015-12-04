@@ -10,6 +10,8 @@
 #include "cmds.h"
 #include "param.h"
 
+#define CMD_ADD(name) {#name, cmd_##name}
+
 int cmd_nil(int conn_fd, list_t *para) {
     const char *nil = "illegal command\r\n";
     if (send(conn_fd, nil, strlen(nil), 0) < 0)
@@ -18,8 +20,9 @@ int cmd_nil(int conn_fd, list_t *para) {
 }
 
 const struct cmd cmd_table[] = {
-    {"hello"    , cmd_hello },
-    {NULL       , cmd_nil   }
+    CMD_ADD(hello),
+    CMD_ADD(bye),
+    {NULL, cmd_nil}
 };
 
 int s_cmd(int conn_fd, char buff[BUFF_LEN]) {
@@ -37,10 +40,11 @@ int s_cmd(int conn_fd, char buff[BUFF_LEN]) {
 
     LIST_HEAD(params);
 
-    char *token = strtok(buff, " ");
+    char *token = strtok(buff, " \t\r\n");
     while(token) {
-        param_add(&params, token);
-        token = strtok(NULL, " ");
+        if (*token)
+            param_add(&params, token);
+        token = strtok(NULL, " \t\r\n");
     }
 
     int ret = p->oper(conn_fd, &params);

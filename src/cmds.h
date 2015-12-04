@@ -3,6 +3,9 @@
 
 #include "list.h"
 
-int cmd_hello(int conn_fd, list_t *paras);
+#define CMD_SIGN(name) int cmd_##name(int conn_fd, list_t *paras)
+
+CMD_SIGN(hello);
+CMD_SIGN(bye);
 
 #endif

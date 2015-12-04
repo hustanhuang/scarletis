@@ -8,16 +8,32 @@
 #include "log.h"
 #include "param.h"
 
-int cmd_hello(int conn_fd, list_t *paras) {
+CMD_SIGN(hello) {
     char buff[BUFF_LEN];
-    strcpy(buff, "hello,world");
+    strcpy(buff, "Greetings");
 
     list_t *pos = NULL;
     list_for_each(pos, paras) {
-        strcat(buff, " ");
+        strcat(buff, ", ");
         strcat(buff, param_value(pos));
     }
-    strcat(buff, "\r\n");
+    strcat(buff, ".\r\n");
+
+    if (send(conn_fd, buff, strlen(buff), 0) < 0)
+        s_err("send");
+    return 0;
+}
+
+CMD_SIGN(bye) {
+    char buff[BUFF_LEN];
+    strcpy(buff, "Bye");
+
+    list_t *pos = NULL;
+    list_for_each(pos, paras) {
+        strcat(buff, ", ");
+        strcat(buff, param_value(pos));
+    }
+    strcat(buff, ".\r\n");
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");

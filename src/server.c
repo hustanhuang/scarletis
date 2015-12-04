@@ -29,7 +29,7 @@ int main() {
     int conn_fd;
     struct sockaddr_in cli_addr;
     socklen_t length = 0;
-    for ( ; ; ) {
+    for (int i = 0; i != 1; ++i) {
         s_log("Waiting for connections");
 
         length = sizeof(cli_addr);

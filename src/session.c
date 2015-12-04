@@ -23,7 +23,10 @@ int session(int conn_fd, struct sockaddr_in *cli_addr) {
         if ( (length = recv(conn_fd, buff, sizeof(buff), 0)) < 0)
             s_err("recv data");
 
-        if (strcmp(buff, "quit\r\n") == 0) {
+        if (buff[length - 1] == '\n') buff[--length] = '\0';
+        if (buff[length - 1] == '\r') buff[--length] = '\0';
+
+        if (strcmp(buff, "quit") == 0) {
             s_log("END");
             break;
         } else {

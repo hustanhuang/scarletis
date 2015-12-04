@@ -6,29 +6,18 @@
 
 #include "def.h"
 #include "log.h"
+#include "param.h"
 
-int cmd_hello(int conn_fd, const char *para) {
+int cmd_hello(int conn_fd, list_t *paras) {
     char buff[BUFF_LEN];
-    strcpy(buff, "hello,world ");
-    strcat(buff, para);
+    strcpy(buff, "hello,world");
 
-    if (send(conn_fd, buff, strlen(buff), 0) < 0)
-        s_err("send");
-    return 0;
-}
-
-int cmd_set(int conn_fd, const char *para) {
-    char buff[BUFF_LEN];
-    strcpy(buff, para);
-
-    if (send(conn_fd, buff, strlen(buff), 0) < 0)
-        s_err("send");
-    return 0;
-}
-
-int cmd_get(int conn_fd, const char *para) {
-    char buff[BUFF_LEN];
-    strcpy(buff, para);
+    list_t *pos = NULL;
+    list_for_each(pos, paras) {
+        strcat(buff, " ");
+        strcat(buff, param_value(pos));
+    }
+    strcat(buff, "\r\n");
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");

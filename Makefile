@@ -7,7 +7,7 @@ all: server
 server: srv log session cmd
 	$(CC) $(CFLAGS) -o scar-srv $(SRVOBJS)
 
-SRVOBJS= obj/server.o obj/log.o obj/session.o obj/cmd.o obj/cmds.o
+SRVOBJS= obj/server.o obj/log.o obj/session.o obj/cmd.o obj/cmds.o obj/list.o
 
 srv:
 	$(CC) $(CFLAGS) -o obj/server.o -c src/server.c
@@ -18,7 +18,7 @@ session: log cmd
 cmd: cmds
 	$(CC) $(CFLAGS) -o obj/cmd.o -c src/cmd.c
 
-cmds:
+cmds: list
 	$(CC) $(CFLAGS) -o obj/cmds.o -c src/cmds.c
 
 #utils

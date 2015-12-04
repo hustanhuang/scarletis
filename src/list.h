@@ -8,11 +8,11 @@ typedef struct list_head {
 } list_t;
 
 /* Define a variable with the head and tail of the list.  */
-# define LIST_HEAD(name) \
+# define S_LIST_HEAD(name) \
   list_t name = { &(name), &(name) }
 
 /* Initialize a new list head.  */
-# define INIT_LIST_HEAD(ptr) \
+# define S_INIT_LIST_HEAD(ptr) \
   (ptr)->next = (ptr)->prev = (ptr)
 
 /* Get typed element from list at a given position.  */

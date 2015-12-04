@@ -38,7 +38,7 @@ int s_cmd(int conn_fd, char buff[BUFF_LEN]) {
         if (strcmp(p->name, name) == 0)
             break;
 
-    LIST_HEAD(params);
+    S_LIST_HEAD(params);
 
     char *token = strtok(buff, " \t\r\n");
     while(token) {

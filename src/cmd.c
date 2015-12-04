@@ -13,7 +13,7 @@
 #define CMD_ADD(name) {#name, cmd_##name}
 
 int cmd_nil(int conn_fd, list_t *para) {
-    const char *nil = "illegal command\r\n";
+    const char *nil = "Illegal command\r\n";
     if (send(conn_fd, nil, strlen(nil), 0) < 0)
         s_err("send");
     return 0;

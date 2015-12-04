@@ -6,7 +6,7 @@
 
 #include "def.h"
 #include "log.h"
-#include "cmds.h"
+#include "cmd.h"
 
 int session(int conn_fd, struct sockaddr_in *cli_addr) {
     const char *prompt = ">>> ";

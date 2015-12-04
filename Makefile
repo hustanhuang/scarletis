@@ -4,16 +4,19 @@ CFLAGS= -std=c99
 all: server
 
 #server
-server: srv log session cmds
+server: srv log session cmd
 	$(CC) $(CFLAGS) -o scar-srv $(SRVOBJS)
 
-SRVOBJS= obj/server.o obj/log.o obj/session.o obj/cmds.o
+SRVOBJS= obj/server.o obj/log.o obj/session.o obj/cmd.o obj/cmds.o
 
 srv:
 	$(CC) $(CFLAGS) -o obj/server.o -c src/server.c
 
-session: log cmds
+session: log cmd
 	$(CC) $(CFLAGS) -o obj/session.o -c src/session.c
+
+cmd: cmds
+	$(CC) $(CFLAGS) -o obj/cmd.o -c src/cmd.c
 
 cmds:
 	$(CC) $(CFLAGS) -o obj/cmds.o -c src/cmds.c

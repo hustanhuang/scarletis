@@ -56,7 +56,7 @@ int table_length (T table) {
     return table->length;
 }
 
-void *table_put (T table, const void *key, void *value) {
+void *table_put (T table, void *key, void *value) {
     struct binding *p;
     void *prev;
     assert(table);
@@ -90,7 +90,7 @@ void *table_get (T table, const void *key) {
     return p ? p->value : NULL;
 }
 
-void *table_remove (T table, const void *key) {
+struct binding *table_remove (T table, void *key) {
     assert(table);
     assert(key);
     ++(table->timestamp);
@@ -98,17 +98,15 @@ void *table_remove (T table, const void *key) {
     for (struct binding **pp = &table->buckets[i]; *pp; pp = &(*pp)->link)
         if ((*table->cmp)(key, (*pp)->key) == 0) {
             struct binding *p = *pp;
-            void *value = p->value;
             *pp = p->link;
-            free(p);
             --(table->length);
-            return value;
+            return p;
         }
     return NULL;
 }
 
 void table_map (T table,
-        void apply(const void *key, void **value)) {
+        void apply(void *key, void **value)) {
     assert(table);
     assert(apply);
     unsigned int stamp = table->timestamp;
@@ -120,7 +118,7 @@ void table_map (T table,
 }
 
 void table_map_cl (T table,
-        void apply(const void *key, void **value, void *cl),
+        void apply(void *key, void **value, void *cl),
         void *cl) {
     assert(table);
     assert(apply);

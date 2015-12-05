@@ -10,7 +10,7 @@ struct table_t {
 
     struct binding {
         struct binding *link;
-        const void *key;
+        void *key;
         void *value;
     } **buckets;
 };
@@ -24,15 +24,15 @@ extern T        table_new   (int hint,
 extern void     table_free  (T *table);
 
 extern int      table_length(T table);
-extern void    *table_put   (T table, const void *key, void *value);
+extern void    *table_put   (T table, void *key, void *value);
 extern void    *table_get   (T table, const void *key);
-extern void    *table_remove(T table, const void *key);
+extern struct binding  *table_remove(T table, void *key);
 
 extern void     table_map   (T table,
-        void apply(const void *key, void **value));
+        void apply(void *key, void **value));
 
 extern void     table_map_cl(T table,
-        void apply(const void *key, void **value, void *cl),
+        void apply(void *key, void **value, void *cl),
         void *cl);
 
 #undef T

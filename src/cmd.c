@@ -21,7 +21,9 @@ int cmd_nil(int conn_fd, list_t *para) {
 
 const struct cmd cmd_table[] = {
     CMD_ADD(hello),
+    CMD_ADD(bye),
     CMD_ADD(hash),
+    CMD_ADD(shutdown),
     CMD_ADD(append),
     CMD_ADD(bitcount),
     CMD_ADD(brpop),
@@ -86,5 +88,6 @@ int s_cmd(int conn_fd, char buff[BUFF_LEN]) {
 
     int ret = p->oper(conn_fd, &params);
     param_free(&params);
+
     return ret;
 }

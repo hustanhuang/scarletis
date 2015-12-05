@@ -7,6 +7,8 @@
 
 CMD_SIGN(hello);
 CMD_SIGN(hash);
+CMD_SIGN(bye);
+CMD_SIGN(shutdown);
 CMD_SIGN(append);
 CMD_SIGN(bitcount);
 CMD_SIGN(brpop);

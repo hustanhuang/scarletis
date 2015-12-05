@@ -1,7 +1,9 @@
 #include "cmds.h"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/socket.h>
+#include <signal.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -9,9 +11,39 @@
 #include "log.h"
 #include "param.h"
 #include "hash.h"
+#include "db.h"
+#include "table.h"
+
+enum s_errno {
+    EARGNUM
+};
+
+void cmd_err(int conn_fd, const char *cmd, enum s_errno e) {
+    char msg[BUFF_LEN];
+    strcpy(msg, "ERR ");
+
+    const char *content;
+    switch (e) {
+        case EARGNUM:
+            content = "wrong number of arguments";
+            break;
+        default:
+            content = "unkown error";
+            break;
+    }
+
+    strcat(msg, content);
+
+    strcat(msg, " for '");
+    strcat(msg, cmd);
+    strcat(msg, "' command\r\n");
+    if (send(conn_fd, msg, strlen(msg), 0) < 0)
+        s_err("send");
+}
 
 CMD_SIGN(hello) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "Greetings");
 
     list_t *pos = NULL;
@@ -26,8 +58,25 @@ CMD_SIGN(hello) {
     return 0;
 }
 
+CMD_SIGN(bye) {
+    char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
+    strcpy(buff, "Bye.\r\n");
+    if (send(conn_fd, buff, strlen(buff), 0) < 0)
+        s_err("send");
+    close(conn_fd);
+    s_log("Connection Terminated");
+    return 0;
+}
+
+CMD_SIGN(shutdown) {
+    raise(SIGQUIT);
+    return 0;
+}
+
 CMD_SIGN(hash) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
 
     list_t *pos = NULL;
     list_for_each(pos, paras) {
@@ -43,6 +92,7 @@ CMD_SIGN(hash) {
 
 CMD_SIGN(append) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -59,6 +109,7 @@ CMD_SIGN(append) {
 
 CMD_SIGN(bitcount) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -75,6 +126,7 @@ CMD_SIGN(bitcount) {
 
 CMD_SIGN(brpop) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -91,6 +143,7 @@ CMD_SIGN(brpop) {
 
 CMD_SIGN(brpoplpush) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -107,6 +160,7 @@ CMD_SIGN(brpoplpush) {
 
 CMD_SIGN(decr) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -123,6 +177,7 @@ CMD_SIGN(decr) {
 
 CMD_SIGN(decrby) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -139,22 +194,42 @@ CMD_SIGN(decrby) {
 
 CMD_SIGN(del) {
     char buff[BUFF_LEN];
-    strcpy(buff, "params:");
+    bzero(buff, sizeof(buff));
+    char *key, *val;
+
+    int para_num = 0;
 
     list_t *pos = NULL;
-    list_for_each(pos, paras) {
-        strcat(buff, " ");
-        strcat(buff, param_value(pos));
+    list_for_each(pos, paras)
+        ++para_num;
+
+    if (para_num != 1) {
+        cmd_err(conn_fd, "del", EARGNUM);
+        return 1;
     }
-    strcat(buff, "\r\n");
+
+    key = param_value(paras->next);
+
+    val = (char *)table_get(s_db, key);
+
+    sprintf(buff, "%s\r\n", val ? val : "(nil)");
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");
+
+    if (val) {
+        struct binding *entry = table_remove(s_db, key);
+        free(entry->key);
+        free(entry->value);
+        free(entry);
+    }
+
     return 0;
 }
 
 CMD_SIGN(exists) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -171,14 +246,25 @@ CMD_SIGN(exists) {
 
 CMD_SIGN(get) {
     char buff[BUFF_LEN];
-    strcpy(buff, "params:");
+    bzero(buff, sizeof(buff));
+    const char *key, *val;
+
+    int para_num = 0;
 
     list_t *pos = NULL;
-    list_for_each(pos, paras) {
-        strcat(buff, " ");
-        strcat(buff, param_value(pos));
+    list_for_each(pos, paras)
+        ++para_num;
+
+    if (para_num != 1) {
+        cmd_err(conn_fd, "get", EARGNUM);
+        return 1;
     }
-    strcat(buff, "\r\n");
+
+    key = param_value(paras->next);
+
+    val = (const char *)table_get(s_db, key);
+
+    sprintf(buff, "%s\r\n", val ? val : "nil");
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");
@@ -187,6 +273,7 @@ CMD_SIGN(get) {
 
 CMD_SIGN(getbit) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -203,6 +290,7 @@ CMD_SIGN(getbit) {
 
 CMD_SIGN(getrange) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -219,6 +307,7 @@ CMD_SIGN(getrange) {
 
 CMD_SIGN(incr) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -235,6 +324,7 @@ CMD_SIGN(incr) {
 
 CMD_SIGN(incrby) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -251,6 +341,7 @@ CMD_SIGN(incrby) {
 
 CMD_SIGN(keys) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -267,6 +358,7 @@ CMD_SIGN(keys) {
 
 CMD_SIGN(lindex) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -283,6 +375,7 @@ CMD_SIGN(lindex) {
 
 CMD_SIGN(linsert) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -299,6 +392,7 @@ CMD_SIGN(linsert) {
 
 CMD_SIGN(llen) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -315,6 +409,7 @@ CMD_SIGN(llen) {
 
 CMD_SIGN(lpop) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -331,6 +426,7 @@ CMD_SIGN(lpop) {
 
 CMD_SIGN(lpush) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -347,6 +443,7 @@ CMD_SIGN(lpush) {
 
 CMD_SIGN(lpushx) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -363,6 +460,7 @@ CMD_SIGN(lpushx) {
 
 CMD_SIGN(lrange) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -379,6 +477,7 @@ CMD_SIGN(lrange) {
 
 CMD_SIGN(lrem) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -395,6 +494,7 @@ CMD_SIGN(lrem) {
 
 CMD_SIGN(lset) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -411,6 +511,7 @@ CMD_SIGN(lset) {
 
 CMD_SIGN(ltrim) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -427,6 +528,7 @@ CMD_SIGN(ltrim) {
 
 CMD_SIGN(mget) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -443,6 +545,7 @@ CMD_SIGN(mget) {
 
 CMD_SIGN(msetnx) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -459,6 +562,7 @@ CMD_SIGN(msetnx) {
 
 CMD_SIGN(randomkey) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -475,6 +579,7 @@ CMD_SIGN(randomkey) {
 
 CMD_SIGN(rename) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -491,6 +596,7 @@ CMD_SIGN(rename) {
 
 CMD_SIGN(rpop) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -507,6 +613,7 @@ CMD_SIGN(rpop) {
 
 CMD_SIGN(rpoplpush) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -523,6 +630,7 @@ CMD_SIGN(rpoplpush) {
 
 CMD_SIGN(rpush) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -539,6 +647,7 @@ CMD_SIGN(rpush) {
 
 CMD_SIGN(rpushx) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -555,14 +664,31 @@ CMD_SIGN(rpushx) {
 
 CMD_SIGN(set) {
     char buff[BUFF_LEN];
-    strcpy(buff, "params:");
+    bzero(buff, sizeof(buff));
+    char *key, *val, *new_key, *new_val;
+
+    int para_num = 0;
 
     list_t *pos = NULL;
-    list_for_each(pos, paras) {
-        strcat(buff, " ");
-        strcat(buff, param_value(pos));
+    list_for_each(pos, paras)
+        ++para_num;
+
+    if (para_num != 2) {
+        cmd_err(conn_fd, "set", EARGNUM);
+        return 0;
     }
-    strcat(buff, "\r\n");
+
+    key = param_value(paras->next);
+    val= param_value(paras->prev);
+
+    new_key = malloc(sizeof(char) * (strlen(key) + 1));
+    strcpy(new_key, key);
+    new_val = malloc(sizeof(char) * (strlen(val) + 1));
+    strcpy(new_val, val);
+
+    table_put(s_db, new_key, new_val);
+
+    sprintf(buff, "OK\r\n");
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");
@@ -571,6 +697,7 @@ CMD_SIGN(set) {
 
 CMD_SIGN(setbit) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -587,6 +714,7 @@ CMD_SIGN(setbit) {
 
 CMD_SIGN(setrange) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -603,6 +731,7 @@ CMD_SIGN(setrange) {
 
 CMD_SIGN(strlen) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;
@@ -619,6 +748,7 @@ CMD_SIGN(strlen) {
 
 CMD_SIGN(type) {
     char buff[BUFF_LEN];
+    bzero(buff, sizeof(buff));
     strcpy(buff, "params:");
 
     list_t *pos = NULL;

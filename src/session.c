@@ -24,11 +24,7 @@ int Session(int conn_fd, int bytes) {
     s_prt(buff, length);
     putchar('\n');
 
-    if (strcmp(buff, "quit") == 0) {
-        close(conn_fd);
-        s_log("Connection Terminated");
-    } else
-        s_cmd(conn_fd, buff);
+    s_cmd(conn_fd, buff);
 
     return 0;
 }

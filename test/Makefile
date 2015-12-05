@@ -8,3 +8,6 @@ list:
 
 sds:
 	$(CC) $(CFLAGS) -o test sdstest.c ../src/sds.c
+
+table:
+	$(CC) $(CFLAGS) -o test tabletest.c ../src/table.c

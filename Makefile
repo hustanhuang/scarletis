@@ -32,6 +32,9 @@ list:
 sds:
 	$(CC) $(CFLAGS) -o obj/sds.o -c src/sds.c
 
+table:
+	$(CC) $(CFLAGS) -o obj/table.o -c src/table.c
+
 #cleanup
 clean:
 	rm -R *~ src/*~ scar-srv *.dSYM

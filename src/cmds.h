@@ -6,6 +6,7 @@
 #define CMD_SIGN(name) int cmd_##name(int conn_fd, list_t *paras)
 
 CMD_SIGN(hello);
+CMD_SIGN(hash);
 CMD_SIGN(append);
 CMD_SIGN(bitcount);
 CMD_SIGN(brpop);

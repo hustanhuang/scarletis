@@ -1,5 +1,6 @@
 #include "cmds.h"
 
+#include <stdio.h>
 #include <sys/socket.h>
 #include <string.h>
 #include <ctype.h>
@@ -7,6 +8,7 @@
 #include "def.h"
 #include "log.h"
 #include "param.h"
+#include "hash.h"
 
 CMD_SIGN(hello) {
     char buff[BUFF_LEN];
@@ -21,6 +23,21 @@ CMD_SIGN(hello) {
 
     if (send(conn_fd, buff, strlen(buff), 0) < 0)
         s_err("send");
+    return 0;
+}
+
+CMD_SIGN(hash) {
+    char buff[BUFF_LEN];
+
+    list_t *pos = NULL;
+    list_for_each(pos, paras) {
+        char *p = param_value(pos);
+        size_t len = strlen(p);
+        sprintf(buff, "hash(\"%s\") = %u\r\n", p, dictGenHashFunction(p, len));
+        if (send(conn_fd, buff, strlen(buff), 0) < 0)
+        s_err("send");
+    }
+
     return 0;
 }
 

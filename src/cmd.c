@@ -21,6 +21,7 @@ int cmd_nil(int conn_fd, list_t *para) {
 
 const struct cmd cmd_table[] = {
     CMD_ADD(hello),
+    CMD_ADD(hash),
     CMD_ADD(append),
     CMD_ADD(bitcount),
     CMD_ADD(brpop),

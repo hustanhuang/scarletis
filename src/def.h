@@ -8,7 +8,7 @@
 #define MAX_EVENT_COUNT 4096
 
 static char *welcome =
-"Scarletis\n"
+"\033\[31mScarletis\033\[0m\n"
 "Port: %d\n";
 
 static time_t g_ticks = 0;
